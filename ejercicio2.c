@@ -40,9 +40,11 @@ int main(){
         fflush(stdin);
         tareaIndividual->Descripcion = (char*)malloc((strlen(buffer)+1)*sizeof(char));
         strcpy(tareaIndividual->Descripcion, buffer);
-        printf("Duracion: ");
-        scanf("%d", &tareaIndividual->Duracion);
-        fflush(stdin);
+        do{
+            printf("Duracion: ");
+            scanf("%d", &tareaIndividual->Duracion);
+            fflush(stdin);
+        } while (tareaIndividual->Duracion < 10 || tareaIndividual->Duracion > 100);
     }
 
     // 4. Una vez cargada todas las tareas. Irá listando de a una las tareas y preguntando si se realizó o no la misma. Si la respuesta es Si tiene que “mover” dicha tarea a otro arreglo denominado tareas realizadas que tendrá el mismo tamaño que el anterior. Una vez movida la tarea ese casillero del vector tiene que apuntar a null. Como se muestra en la gráfica a continuación.
