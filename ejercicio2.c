@@ -79,7 +79,8 @@ int main(){
             printf("La tarea sigue pendiente");
         }
     }
-    
+
+    //5. Mostrar por pantalla todas las tareas realizadas y luego listar las tareas pendientes.
     printf("\n\n\nLISTADO DE TAREAS REALIZADAS");
     for (int i = 0; i < cantidadDeTareasACargar; i++){
         if (tareasRealizadas[i] != NULL){
@@ -97,9 +98,34 @@ int main(){
             printf("TAREA %d \r\n", listaDeTareas[i]->TareaID);
             printf("Descripcion de tarea %d: %s \r\n", listaDeTareas[i]->TareaID, listaDeTareas[i]->Descripcion);
             printf("Duracion: %d\r\n", listaDeTareas[i]->Duracion);
-            printf("¿Realizo esta tarea? (s/n): ");
         }
     }
+
+    //6. Cree un nuevo branch llamado busca-tarea e implemente una función de búsqueda de tarea por nro. de id de nombre BuscarTarea. La misma devuelve la tarea solicitada.
+
+    printf("\n\nBUSCAR TAREA POR ID\n");
+    int idBuscar;
+    printf("ID de tarea a buscar: ");
+    scanf("%d", &idBuscar);
+    fflush(stdin);
+
+    for (int i = 0; i < cantidadDeTareasACargar; i++){
+        if (listaDeTareas[i] != NULL && listaDeTareas[i]->TareaID == idBuscar){
+            printf("TAREA %d \r\n", listaDeTareas[i]->TareaID);
+            printf("Descripcion de tarea %d: %s \r\n", listaDeTareas[i]->TareaID, listaDeTareas[i]->Descripcion);
+            printf("Duracion: %d\r\n", listaDeTareas[i]->Duracion);
+        } else if (tareasRealizadas[i] != NULL && tareasRealizadas[i]->TareaID == idBuscar){
+            printf("TAREA %d \r\n", tareasRealizadas[i]->TareaID);
+            printf("Descripcion de tarea %d: %s \r\n", tareasRealizadas[i]->TareaID, tareasRealizadas[i]->Descripcion);
+            printf("Duracion: %d\r\n", tareasRealizadas[i]->Duracion);
+        }
+    }
+    
+    //7. Vuelva al branch main e implemente también una nueva versión de la función BuscarTarea en donde la misma sea por palabra clave en vez de por Id. (uno le manda una palabra y te tiene que devolver la primera tarea que contenga dicha palabra). Nota: Para realizar este punto, investigue el uso de la función strstr.
+
+    //8. Realizar el merge correspondiente y resuelva el conflicto producido. Finalmente modifique los nombres de las funciones a BuscaTareaPorId y otra BuscaTareaPorPalabra.
+
+    // 9. Agregue una interfaz de usuario al programa principal que permita consultar tareas por id y palabra clave y mostrarlas por pantalla.
 
 
     return 0;
