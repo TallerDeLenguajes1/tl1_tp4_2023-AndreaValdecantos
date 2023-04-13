@@ -101,7 +101,7 @@ int main(){
         }
     }
 
-    //6. Cree un nuevo branch llamado busca-tarea e implemente una función de búsqueda de tarea por nro. de id de nombre BuscarTarea. La misma devuelve la tarea solicitada.
+    //6. Implemente una función de búsqueda de tarea por nro. de id de nombre BuscarTarea. La misma devuelve la tarea solicitada.
 
     printf("\n\nBUSCAR TAREA POR ID\n");
     int idBuscar;
@@ -121,9 +121,29 @@ int main(){
         }
     }
     
-    //7. Vuelva al branch main e implemente también una nueva versión de la función BuscarTarea en donde la misma sea por palabra clave en vez de por Id. (uno le manda una palabra y te tiene que devolver la primera tarea que contenga dicha palabra). Nota: Para realizar este punto, investigue el uso de la función strstr.
+    //7. Implemente una función BuscarTarea en donde la misma sea por palabra clave en vez de por Id. (uno le manda una palabra y te tiene que devolver la primera tarea que contenga dicha palabra). Nota: Para realizar este punto, investigue el uso de la función strstr.
+    
+    printf("\n\nBUSCAR TAREA POR PALABRA CLAVE\n");
+    char *bufferPalabraClave;
+    bufferPalabraClave = (char*)malloc(100*sizeof(char));
+    printf("Palabra clave de la tarea a buscar: ");
+    gets(bufferPalabraClave);
+    fflush(stdin);
+    char *palabraClave;
+    palabraClave = (char*)malloc((strlen(bufferPalabraClave)+1)*sizeof(char));
+    strcpy(palabraClave, bufferPalabraClave);
 
-    //8. Realizar el merge correspondiente y resuelva el conflicto producido. Finalmente modifique los nombres de las funciones a BuscaTareaPorId y otra BuscaTareaPorPalabra.
+    for (int i = 0; i < cantidadDeTareasACargar; i++){
+        if (listaDeTareas[i] != NULL && strstr(listaDeTareas[i]->Descripcion, palabraClave) != NULL){
+            printf("TAREA %d \r\n", listaDeTareas[i]->TareaID);
+            printf("Descripcion de tarea %d: %s \r\n", listaDeTareas[i]->TareaID, listaDeTareas[i]->Descripcion);
+            printf("Duracion: %d\r\n", listaDeTareas[i]->Duracion);
+        } else if (tareasRealizadas[i] != NULL && strstr(tareasRealizadas[i]->Descripcion, palabraClave) != NULL){
+            printf("TAREA %d \r\n", tareasRealizadas[i]->TareaID);
+            printf("Descripcion de tarea %d: %s \r\n", tareasRealizadas[i]->TareaID, tareasRealizadas[i]->Descripcion);
+            printf("Duracion: %d\r\n", tareasRealizadas[i]->Duracion);
+        }
+    }
 
     // 9. Agregue una interfaz de usuario al programa principal que permita consultar tareas por id y palabra clave y mostrarlas por pantalla.
 
