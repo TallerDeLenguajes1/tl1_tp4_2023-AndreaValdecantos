@@ -18,11 +18,11 @@ typedef struct Nodo
     struct Nodo *Siguiente; // puntero a la siguiente tarea
 } Nodo;
 
-// crear lista vacía
-Nodo * lista = NULL;       // puntero a nodo
-Nodo * listaHechas = NULL; // puntero a nodo
-Nodo * tareasEnProceso = NULL; // puntero a nodo
-int indice = 0;
+// crear listas vacías
+Nodo *lista = NULL;           // puntero a nodo
+Nodo *listaHechas = NULL;     // puntero a nodo
+Nodo *tareasEnProceso = NULL; // puntero a nodo
+int indice = 0; // para controlar los ids
 
 // crear tarea
 Tarea *crearTarea(int id, int duracion, char *descripcion);
@@ -42,19 +42,19 @@ void mostrarLista(Nodo *lista);
 int longitudLista(Nodo *lista);
 
 // cargar lista
-void cargarLista(Nodo **lista, int * indice);
+void cargarLista(Nodo **lista, int *indice);
 
 // consultar tarea realizada
 bool consultarTareaRealizada(Tarea *tarea);
 
-//eliminar tarea
-void eliminarTarea(Tarea * tarea);
+// eliminar tarea
+void eliminarTarea(Tarea *tarea);
 
-//mostrar datos
-void mostrarDatos(Nodo * lista);
+// mostrar datos
+void mostrarDatos(Nodo *lista);
 
 // borrar nodo por id
-void borrarNodoEspecifico(Nodo ** inicio, int numero);
+void borrarNodoEspecifico(Nodo **inicio, int numero);
 
 // lista tareas realizadas
 void cargarTareasRealizadas(Nodo **lista, Nodo **listaHechas, int cantidad);
@@ -72,8 +72,13 @@ void mostrarMenu();
 int pedirOpcionMenu();
 
 // realizar lo pedido
-void operacionMenuSegunOpcion(int opcion, Nodo **lista, Nodo **listaHechas);
+void operacionMenuSegunOpcion(int opcion, Nodo **lista, Nodo **listaHechas, Nodo **tareasEnProceso);
 
+//mover tareas entre listas
+void moverTareas(Nodo **listaOrigen, Nodo **listaDestino, int id);
+
+//averiguar si existe una tarea con un id específico y devuelve bool
+bool idEncontrado(Nodo *lista, int idEncontrado);
 
 int main()
 {
@@ -82,7 +87,7 @@ int main()
 
     while (opcion != 0)
     {
-        operacionMenuSegunOpcion(opcion, &lista, &listaHechas);
+        operacionMenuSegunOpcion(opcion, &lista, &listaHechas, &tareasEnProceso);
         mostrarMenu();
         opcion = pedirOpcionMenu();
         if (opcion == 0)
@@ -93,7 +98,6 @@ int main()
 
     return 0;
 }
-
 
 Tarea *crearTarea(int id, int duracion, char *descripcion)
 {
@@ -141,7 +145,9 @@ void mostrarLista(Nodo *lista)
             mostrarTarea(&auxRecorrerLista->tarea);
             auxRecorrerLista = auxRecorrerLista->Siguiente;
         }
-    } else {
+    }
+    else
+    {
         printf("LISTA VACIA\n");
     }
     free(auxRecorrerLista);
@@ -165,9 +171,31 @@ int longitudLista(Nodo *lista)
     return longitud;
 }
 
-void mostrarDatos(Nodo * lista){
-    //int cantidadTareas = longitudLista(lista);
-    Nodo * aux = lista;
+bool idEncontrado(Nodo *lista, int idEncontrado)
+{
+    Nodo *aux = lista;
+
+    if (lista != NULL)
+    {
+        while (aux != NULL && aux->tarea.TareaID != idEncontrado)
+        {
+            aux = aux->Siguiente;
+        }
+        if (aux)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+}
+
+void mostrarDatos(Nodo *lista)
+{
+    // int cantidadTareas = longitudLista(lista);
+    Nodo *aux = lista;
     int tiempoLista = 0;
     int cantidadTareas = 0;
 
@@ -186,7 +214,7 @@ void mostrarDatos(Nodo * lista){
     printf("\nCantidad de tareas: %d\nTiempo total para las tareas: %d\n", cantidadTareas, tiempoLista);
 }
 
-void cargarLista(Nodo **lista, int * indice)
+void cargarLista(Nodo **lista, int *indice)
 {
     // int cantidadDeNodos;
     int respuesta;
@@ -216,7 +244,6 @@ void cargarLista(Nodo **lista, int * indice)
         scanf("%d", &respuesta);
         fflush(stdin);
     }
-
 }
 
 bool consultarTareaRealizada(Tarea *tarea)
@@ -237,12 +264,13 @@ bool consultarTareaRealizada(Tarea *tarea)
     }
 }
 
-void eliminarTarea(Tarea * tarea){
+void eliminarTarea(Tarea *tarea)
+{
     free(tarea->Descripcion);
     free(tarea);
 }
 
-void borrarNodoEspecifico(Nodo ** inicio, int numero)
+void borrarNodoEspecifico(Nodo **inicio, int numero)
 {
     if (inicio != NULL)
     {
@@ -275,27 +303,25 @@ void cargarTareasRealizadas(Nodo **lista, Nodo **listaHechas, int cantidad)
 {
     Nodo *auxLista = *lista;
     int *arregloDeIDs = (int *)malloc(cantidad * sizeof(int));
+    int i = 0;
 
     printf("\nCARGAR LISTA DE TAREAS REALIZADAS\n");
 
     if (lista)
     {
-        for (int i = 0; i < cantidad; i++)
+        while (auxLista != NULL)
         {
-            while (auxLista != NULL)
+            if (consultarTareaRealizada(&auxLista->tarea))
             {
-                if (consultarTareaRealizada(&auxLista->tarea))
-                {
-                    insertarNodo(listaHechas, &auxLista->tarea);
-                    arregloDeIDs[i] = auxLista->tarea.TareaID;
-                }
-                else
-                {
-                    arregloDeIDs[i] = 0;
-                }
-                i++;
-                auxLista = auxLista->Siguiente;
+                insertarNodo(listaHechas, &auxLista->tarea);
+                arregloDeIDs[i] = auxLista->tarea.TareaID;
             }
+            else
+            {
+                arregloDeIDs[i] = 0;
+            }
+            i++;
+            auxLista = auxLista->Siguiente;
         }
     }
     free(auxLista);
@@ -306,6 +332,26 @@ void cargarTareasRealizadas(Nodo **lista, Nodo **listaHechas, int cantidad)
         // printf("%d \t", arregloDeIDs[i]);
         borrarNodoEspecifico(lista, arregloDeIDs[i]);
     }
+}
+
+void moverTareas(Nodo **listaOrigen, Nodo **listaDestino, int id)
+{
+    Nodo *auxLista = *listaOrigen;
+
+    if (listaOrigen)
+    {
+        while (auxLista != NULL)
+        {
+            if (auxLista->tarea.TareaID == id)
+            {
+                insertarNodo(listaDestino, &auxLista->tarea);
+            }
+            auxLista = auxLista->Siguiente;
+        }
+    }
+    free(auxLista);
+
+    borrarNodoEspecifico(listaOrigen, id);
 }
 
 void buscarTareaPorID(Nodo *lista, int idBuscar)
@@ -354,7 +400,7 @@ void mostrarMenu()
     printf("\n                     MENU\n");
     printf("==============================================\n");
     printf("1_ CARGAR LISTA DE PENDIENTES\n");
-    printf("2_ MOVER TAREAS REALIZADAS\n");
+    printf("2_ MODIFICAR TAREAS PENDIENTES\n");
     printf("3_ BUSCAR TAREA POR ID\n");
     printf("4_ BUSCAR TAREA POR PALABRA CLAVE\n");
     printf("5_ MOSTRAR LISTA DE TAREAS PENDIENTES\n");
@@ -374,9 +420,13 @@ int pedirOpcionMenu()
     return opcion;
 }
 
-void operacionMenuSegunOpcion(int opcion, Nodo **lista, Nodo **listaHechas)
+void operacionMenuSegunOpcion(int opcion, Nodo **lista, Nodo **listaHechas, Nodo **tareasEnProceso)
 {
     int idBuscar;
+    int idCambiar;
+    int opcionEntreListas;
+    int numeroDeLista;
+    int opcionContinuar = 1;
     char *bufferPalabraClave = (char *)malloc(100 * sizeof(char));
 
     switch (opcion)
@@ -385,7 +435,127 @@ void operacionMenuSegunOpcion(int opcion, Nodo **lista, Nodo **listaHechas)
         cargarLista(lista, &indice);
         break;
     case 2:
-        cargarTareasRealizadas(lista, listaHechas, longitudLista(*lista));
+        while (opcionContinuar == 1)
+        {
+            printf("\nMODIFICAR TAREAS PENDIENTES\n");
+            printf("\n -----------------\n");
+            printf("|TAREAS PENDIENTES|");
+            printf("\n -----------------");
+            mostrarLista(*lista);
+            printf("\n -----------------\n");
+            printf("|TAREAS EN PROCESO|");
+            printf("\n -----------------");
+            mostrarLista(*tareasEnProceso);
+            printf("\n -----------------\n");
+            printf("|TAREAS REALIZADAS|");
+            printf("\n -----------------");
+            mostrarLista(*listaHechas);
+
+            printf("\n\nSeleccionar tarea con id: ");
+            scanf("%d", &idCambiar);
+            fflush(stdin);
+
+            if (idEncontrado(*lista, idCambiar) == true || idEncontrado(*listaHechas, idCambiar) == true || idEncontrado(*tareasEnProceso, idCambiar) == true)
+            {
+                printf("\n1:Mover tarea\n2:Eliminar tarea\n3:Nada\n_________\nOpcion: ");
+                scanf("%d", &opcionEntreListas);
+                fflush(stdin);
+
+                switch (opcionEntreListas)
+                {
+                case 1:
+                    printf("\nMover a lista (1: pendientes, 2: en proceso, 3: realizada): ");
+                    scanf("%d", &numeroDeLista);
+                    fflush(stdin);
+                    switch (numeroDeLista)
+                    {
+                    case 1:
+                        if (idEncontrado(*listaHechas, idCambiar))
+                        {
+                            moverTareas(listaHechas, lista, idCambiar);
+                        }
+                        else if (idEncontrado(*tareasEnProceso, idCambiar))
+                        {
+                            moverTareas(tareasEnProceso, lista, idCambiar);
+                        } else {
+                            continue;
+                        }
+                        break;
+                    case 2:
+                        if (idEncontrado(*lista, idCambiar))
+                        {
+                            moverTareas(lista, tareasEnProceso, idCambiar);
+                        }
+                        else if (idEncontrado(*listaHechas, idCambiar))
+                        {
+                            moverTareas(listaHechas, tareasEnProceso, idCambiar);
+                        } else {
+                            continue;
+                        }
+                        break;
+                    case 3:
+                        if (idEncontrado(*lista, idCambiar))
+                        {
+                            moverTareas(lista, listaHechas, idCambiar);
+                        }
+                        else if (idEncontrado(*tareasEnProceso, idCambiar))
+                        {
+                            moverTareas(tareasEnProceso, listaHechas, idCambiar);
+                        } else {
+                            continue;
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+                    break;
+                case 2:
+                    if (idEncontrado(*lista, idCambiar))
+                    {
+                        borrarNodoEspecifico(lista, idCambiar);
+                    }
+                    else if (idEncontrado(*listaHechas, idCambiar))
+                    {
+                        borrarNodoEspecifico(listaHechas, idCambiar);
+                    }
+                    else
+                    {
+                        borrarNodoEspecifico(tareasEnProceso, idCambiar);
+                    }
+
+                    break;
+
+                default:
+                    break;
+                }
+            }
+            else
+            {
+                printf("\nID no encontrado\n");
+            }
+
+            printf("\n\nQUIERE MODIFICAR OTRA TAREA? (1:si, 0:no): ");
+            scanf("%d", &opcionContinuar);
+            fflush(stdin);
+        }
+
+        printf("\nMODIFICAR TAREAS PENDIENTES\n");
+        printf("\n -----------------\n");
+        printf("|TAREAS PENDIENTES|");
+        printf("\n -----------------");
+        mostrarLista(*lista);
+        mostrarDatos(*lista);
+        printf("\n -----------------\n");
+        printf("|TAREAS EN PROCESO|");
+        printf("\n -----------------");
+        mostrarLista(*tareasEnProceso);
+        mostrarDatos(*tareasEnProceso);
+        printf("\n -----------------\n");
+        printf("|TAREAS REALIZADAS|");
+        printf("\n -----------------");
+        mostrarLista(*listaHechas);
+        mostrarDatos(*listaHechas);
+
         break;
     case 3:
         printf("\nBUSCAR TAREA POR ID\n");
