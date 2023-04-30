@@ -1,102 +1,403 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
-//Cree un nuevo branch llamado lista-enlazada donde tendrá que reemplazar la implementación que realizó con listas enlazadas, para ello en vez de tener 2 arreglos de tareas ahora tendrá 2 listas enlazadas (una para las tareas pendientes y otra para las tareas realizadas) y cada vez que se marque como realizada tendrá que mover la tarea de la lista de tareas pendientes a la lista de tareas realizada
+// LISTA DE TAREAS
 
-typedef struct Tarea{
-int TareaID; //Numerado en ciclo iterativo
-char *Descripcion; //
-int Duracion; // entre 10 – 100
-}Tarea;
+typedef struct Tarea
+{
+    int TareaID;       // por iteración
+    char *Descripcion; // entre 10-100
+    int Duracion;
+} Tarea;
 
-typedef struct Nodo{
-    Tarea tarea;
-    struct Nodo *Siguiente;
-}Nodo;
+typedef struct Nodo
+{
+    Tarea tarea;            // guarda una tarea
+    struct Nodo *Siguiente; // puntero a la siguiente tarea
+} Nodo;
 
-Nodo* crearNodo(int id, char* descripcion, int duracion);
-Nodo* crearNodo(int id, char* descripcion, int duracion){
-    Nodo* nodoNuevo = NULL;
-    nodoNuevo = (Nodo*)malloc(sizeof(Nodo));
+// crear lista vacía
+Nodo * lista = NULL;       // puntero a nodo
+Nodo * listaHechas = NULL; // puntero a nodo
 
-    if (nodoNuevo != NULL){
-        nodoNuevo->tarea.TareaID = id;
-        nodoNuevo->tarea.Descripcion = descripcion;
-        nodoNuevo->tarea.Duracion = duracion;
-        nodoNuevo->Siguiente = NULL;
+// crear tarea
+Tarea *crearTarea(int id, int duracion, char *descripcion);
+
+// crear nodo
+Nodo *crearNodo(Tarea *tarea);
+
+// insertar nodo
+void insertarNodo(Nodo **lista, Tarea *tarea); // doble puntero para modificar la lista
+
+void mostrarTarea(Tarea *tarea);
+
+// mostrar lista
+void mostrarLista(Nodo *lista);
+
+// longitud lista
+int longitudLista(Nodo *lista);
+
+// cargar lista
+void cargarLista(Nodo **lista);
+
+// consultar tarea realizada
+bool consultarTareaRealizada(Tarea *tarea);
+
+//eliminar tarea
+void eliminarTarea(Tarea * tarea);
+
+// borrar nodo por id
+void borrarNodoEspecifico(Nodo ** inicio, int numero);
+
+// lista tareas realizadas
+void cargarTareasRealizadas(Nodo **lista, Nodo **listaHechas, int cantidad);
+
+// buscar tarea por id
+void buscarTareaPorID(Nodo *lista, int idBuscar);
+
+// buscar tarea por palabra clave
+void buscarTareaPorPalabraClave(Nodo *lista, char *bufferPalabraClave);
+
+// mostrar opciones del menú
+void mostrarMenu();
+
+// pedir opcion para menú
+int pedirOpcionMenu();
+
+// realizar lo pedido
+void operacionMenuSegunOpcion(int opcion, Nodo **lista, Nodo **listaHechas);
+
+
+int main()
+{
+    mostrarMenu();
+    int opcion = pedirOpcionMenu();
+
+    while (opcion != 0)
+    {
+        operacionMenuSegunOpcion(opcion, &lista, &listaHechas);
+        mostrarMenu();
+        opcion = pedirOpcionMenu();
+        if (opcion == 0)
+        {
+            printf("\n\nFIN DEL PROGRAMA\n\n");
+        }
     }
+
+    return 0;
+}
+
+
+Tarea *crearTarea(int id, int duracion, char *descripcion)
+{
+    Tarea *tarea = (Tarea *)malloc(sizeof(Tarea));
+    tarea->TareaID = id;
+    tarea->Duracion = duracion;
+    tarea->Descripcion = (char *)malloc((strlen(descripcion) + 1) * sizeof(char));
+    strcpy(tarea->Descripcion, descripcion);
+
+    return tarea;
+}
+
+Nodo *crearNodo(Tarea *tarea)
+{
+    Nodo *nodoNuevo = (Nodo *)malloc(sizeof(Nodo)); // reservo memoria para nodo nuevo
+    nodoNuevo->tarea.TareaID = tarea->TareaID;
+    nodoNuevo->tarea.Duracion = tarea->Duracion;
+    nodoNuevo->tarea.Descripcion = tarea->Descripcion;
+    nodoNuevo->Siguiente = NULL;
 
     return nodoNuevo;
 }
 
-void insertarNodo(Nodo** nodoInicial, int id, char* descripcion, int duracion);
-void insertarNodo(Nodo** nodoInicial, int id, char* descripcion, int duracion){
-    Nodo* nodoNuevo = NULL;
-    nodoNuevo = crearNodo(id, descripcion, duracion);
-
-    if (nodoNuevo != NULL){
-        nodoNuevo->Siguiente = *nodoInicial;
-        *nodoInicial = nodoNuevo;
-    }
+void insertarNodo(Nodo **lista, Tarea *tarea)
+{
+    Nodo *nuevoNodo = crearNodo(tarea);
+    nuevoNodo->Siguiente = *lista;
+    *lista = nuevoNodo;
 }
 
-void cargarListaDeTareas(Nodo** nodoInicial, int cantidadDeTareasACargar);
-void cargarListaDeTareas(Nodo** nodoInicial, int cantidadDeTareasACargar){
-    char* buffer;
-    buffer = (char*)malloc(100*sizeof(char));
-    int duracion;
+void mostrarTarea(Tarea *tarea)
+{
+    printf("\nID: %d, DURACION: %d, DESCRIPCION: %s\n", tarea->TareaID, tarea->Duracion, tarea->Descripcion);
+}
 
-    for (int i = 0; i < cantidadDeTareasACargar; i++){
-        printf("\n_________________________________________\n");
-        printf("TAREA %d \r\n", i+1);
-        printf("Descripcion: ");
-        gets(buffer);
-        fflush(stdin);
-        char *descripcion = (char*)malloc((strlen(buffer)+1)*sizeof(char));
-        strcpy(descripcion, buffer);
-        do{
-            printf("Duracion: ");
+void mostrarLista(Nodo *lista)
+{
+    Nodo *auxRecorrerLista = lista;
+    printf("\n");
+
+    if (lista)
+    {
+        while (auxRecorrerLista != NULL)
+        {
+            mostrarTarea(&auxRecorrerLista->tarea);
+            auxRecorrerLista = auxRecorrerLista->Siguiente;
+        }
+    } else {
+        printf("LISTA VACIA\n");
+    }
+    free(auxRecorrerLista);
+}
+
+int longitudLista(Nodo *lista)
+{
+    Nodo *auxRecorrerLista = lista;
+    int longitud = 0;
+
+    if (lista)
+    {
+        while (auxRecorrerLista != NULL)
+        {
+            longitud++;
+            auxRecorrerLista = auxRecorrerLista->Siguiente;
+        }
+    }
+    free(auxRecorrerLista);
+
+    return longitud;
+}
+
+void cargarLista(Nodo **lista)
+{
+    // int cantidadDeNodos;
+    int respuesta;
+    int i = 0;
+    int duracion;
+    char *descripcion = (char *)malloc(100 * sizeof(char));
+    // scanf("%d", &cantidadDeNodos);
+    printf("\nCARGAR LISTA DE TAREAS PENDIENTES\n");
+    printf("Ingresar nueva tarea? (1:si, 0:no): ");
+    scanf("%d", &respuesta);
+    fflush(stdin);
+
+    while (respuesta == 1)
+    {
+        i++;
+        printf("DESCRIPCION: ");
+        gets(descripcion);
+        do
+        {
+            printf("DURACION: ");
             scanf("%d", &duracion);
             fflush(stdin);
-        } while (duracion < 10 || duracion > 100);
-        insertarNodo(nodoInicial, i+1, descripcion, duracion);
+        } while (duracion <= 10 || duracion >= 100);
+
+        Tarea *tarea = crearTarea(i, duracion, descripcion);
+        insertarNodo(lista, tarea);
+        printf("\nIngresar nueva tarea? (1:si, 0:no): ");
+        scanf("%d", &respuesta);
+        fflush(stdin);
     }
 
-    free(buffer);
+    // for (int i = 0; i < cantidadDeNodos; i++){
+    // printf("DESCRIPCION: ");
+    // gets(descripcion);
+    // Tarea * tarea = crearTarea(i+1, rand() % 99 + 1, descripcion);
+    // insertarNodo(lista, tarea);
+    // }
 }
 
-void mostrarLista(Nodo* nodoInicial);
-void mostrarLista(Nodo* nodoInicial){
-    Nodo* nodoAux = nodoInicial;
+bool consultarTareaRealizada(Tarea *tarea)
+{
+    int respuesta;
 
-    while (nodoAux != NULL){
-        printf("\nTarea id = %d\ndescripcion: %s\nduracion = %d\n", nodoAux->tarea.TareaID, nodoAux->tarea.Descripcion, nodoAux->tarea.Duracion);
-        nodoAux = nodoAux->Siguiente;
-    } 
-
-    free(nodoAux);
-}
-
-int main(){
-
-    Nodo* inicioPendientes = NULL;
-    Nodo* inicioRealizadas = NULL;
-
-    int cantidadDeTareasACargar;
-    printf("=========================================\n");
-    printf("Ingrese la cantidad de tareas a cargar: ");
-    scanf("%d", &cantidadDeTareasACargar);
+    printf("\nHizo la tarea %d (%s)? (1:si, 0: no): ", tarea->TareaID, tarea->Descripcion);
+    scanf("%d", &respuesta);
     fflush(stdin);
-    printf("=========================================\n");
 
-    // 1. Reimplemente los puntos 1 a 5 del punto anterior utilizando las listas enlazadas. Modifique la interfaz de carga de tareas para que en vez de solicitar la cantidad de tareas al comienzo, al cabo de cada tarea pregunte al usuario si desea ingresar una nueva tarea o finalizar la carga.
-    cargarListaDeTareas(&inicioPendientes, cantidadDeTareasACargar);
-    printf("\n__________________________");
-    printf("\nLISTA DE TAREAS PENDIENTES\n");
-    mostrarLista(inicioPendientes);
+    if (respuesta == 1)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 
-    //2. Implemente también las funciones de búsquedas para que devuelvan el nodo correspondiente a la tarea solicitada Cree también la interfaz de usuario de consulta de tareas.
+void eliminarTarea(Tarea * tarea){
+    free(tarea->Descripcion);
+    free(tarea);
+}
 
-    return 0;
+void borrarNodoEspecifico(Nodo ** inicio, int numero)
+{
+    if (inicio != NULL)
+    {
+        Nodo *aux = *inicio;
+        Nodo *auxAnterior = NULL;
+
+        if (aux->tarea.TareaID == numero)
+        { // SI EL PRIMER NODO TIENE EL DATO QUE SE BUSCA
+            *inicio = (*inicio)->Siguiente;
+            free(aux);
+        }
+        else
+        {
+            while (aux != NULL && aux->tarea.TareaID != numero)
+            { // PARA BUSCAR EN LOS SIGUIENTES NODOS
+                auxAnterior = aux;
+                aux = aux->Siguiente;
+            }
+            if (aux != NULL && aux->tarea.TareaID == numero)
+            {
+                auxAnterior->Siguiente = aux->Siguiente;
+                eliminarTarea(&(aux->tarea));
+                free(aux);
+            }
+        }
+    }
+}
+
+void cargarTareasRealizadas(Nodo **lista, Nodo **listaHechas, int cantidad)
+{
+    Nodo *auxLista = *lista;
+    int *arregloDeIDs = (int *)malloc(cantidad * sizeof(int));
+
+    printf("\nCARGAR LISTA DE TAREAS REALIZADAS\n");
+
+    if (lista)
+    {
+        for (int i = 0; i < cantidad; i++)
+        {
+            while (auxLista != NULL)
+            {
+                if (consultarTareaRealizada(&auxLista->tarea))
+                {
+                    insertarNodo(listaHechas, &auxLista->tarea);
+                    arregloDeIDs[i] = auxLista->tarea.TareaID;
+                }
+                else
+                {
+                    arregloDeIDs[i] = 0;
+                }
+                i++;
+                auxLista = auxLista->Siguiente;
+            }
+        }
+    }
+    free(auxLista);
+
+    // printf("\n\nARREGLO DE IDs\n");
+    for (int i = 0; i < cantidad; i++)
+    {
+        // printf("%d \t", arregloDeIDs[i]);
+        borrarNodoEspecifico(lista, arregloDeIDs[i]);
+    }
+}
+
+void buscarTareaPorID(Nodo *lista, int idBuscar)
+{
+    if (lista != NULL)
+    {
+        Nodo *aux = lista;
+
+        while (aux != NULL && aux->tarea.TareaID != idBuscar)
+        {
+            aux = aux->Siguiente;
+        }
+        if (aux != NULL && aux->tarea.TareaID == idBuscar)
+        {
+            printf("\nTAREA ENCONTRADA: ");
+            mostrarTarea(&aux->tarea);
+        }
+    }
+}
+
+void buscarTareaPorPalabraClave(Nodo *lista, char *bufferPalabraClave)
+{
+    char *palabraClave;
+    palabraClave = (char *)malloc((strlen(bufferPalabraClave) + 1) * sizeof(char));
+    strcpy(palabraClave, bufferPalabraClave);
+
+    if (lista != NULL)
+    {
+        Nodo *aux = lista;
+
+        while (aux != NULL && strstr(aux->tarea.Descripcion, palabraClave) == NULL)
+        {
+            aux = aux->Siguiente;
+        }
+        if (aux != NULL && strstr(aux->tarea.Descripcion, palabraClave) != NULL)
+        {
+            printf("\nTAREA ENCONTRADA: ");
+            mostrarTarea(&aux->tarea);
+        }
+    }
+}
+
+void mostrarMenu()
+{
+    printf("\n\n==============================================");
+    printf("\n                     MENU\n");
+    printf("==============================================\n");
+    printf("1_ CARGAR LISTA DE PENDIENTES\n");
+    printf("2_ MOVER TAREAS REALIZADAS\n");
+    printf("3_ BUSCAR TAREA POR ID\n");
+    printf("4_ BUSCAR TAREA POR PALABRA CLAVE\n");
+    printf("5_ MOSTRAR LISTA DE TAREAS PENDIENTES\n");
+    printf("6_ MOSTRAR LISTA DE TAREAS REALIZADAS\n");
+    printf("0_ SALIR\n");
+    printf("==============================================\n");
+}
+
+int pedirOpcionMenu()
+{
+    int opcion;
+    printf("                             ELEGIR OPCION: ");
+    scanf("%d", &opcion);
+    printf("==============================================\n");
+    fflush(stdin);
+
+    return opcion;
+}
+
+void operacionMenuSegunOpcion(int opcion, Nodo **lista, Nodo **listaHechas)
+{
+    int idBuscar;
+    char *bufferPalabraClave = (char *)malloc(100 * sizeof(char));
+
+    switch (opcion)
+    {
+    case 1:
+        cargarLista(lista);
+        break;
+    case 2:
+        cargarTareasRealizadas(lista, listaHechas, longitudLista(*lista));
+        break;
+    case 3:
+        printf("\nBUSCAR TAREA POR ID\n");
+        printf("ID de tarea a buscar: ");
+        scanf("%d", &idBuscar);
+        fflush(stdin);
+        buscarTareaPorID(*lista, idBuscar);
+        buscarTareaPorID(*listaHechas, idBuscar);
+        break;
+    case 4:
+        printf("\nBUSCAR TAREA POR PALABRA CLAVE\n");
+        printf("Palabra clave de la tarea a buscar: ");
+        gets(bufferPalabraClave);
+        fflush(stdin);
+        buscarTareaPorPalabraClave(*lista, bufferPalabraClave);
+        buscarTareaPorPalabraClave(*listaHechas, bufferPalabraClave);
+        break;
+    case 5:
+        printf("\n -----------------\n");
+        printf("|TAREAS PENDIENTES|");
+        printf("\n -----------------");
+        mostrarLista(*lista);
+        break;
+    case 6:
+        printf("\n -----------------\n");
+        printf("|TAREAS REALIZADAS|");
+        printf("\n -----------------");
+        mostrarLista(*listaHechas);
+        break;
+
+    default:
+        break;
+    }
 }
