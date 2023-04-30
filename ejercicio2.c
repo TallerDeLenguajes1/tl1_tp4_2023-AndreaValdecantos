@@ -83,6 +83,8 @@ void cargarListaDeTareas(tarea **listaDeTareas, int cantidadDeTareasACargar){
             fflush(stdin);
         } while (tareaIndividual->Duracion < 10 || tareaIndividual->Duracion > 100);
     }
+
+    free(buffer);
 }
 
 void marcarTareasRealizadas(tarea** listaDeTareas, tarea** tareasRealizadas, int cantidadDeTareasACargar){
