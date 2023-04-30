@@ -22,6 +22,7 @@ typedef struct Nodo
 Nodo * lista = NULL;       // puntero a nodo
 Nodo * listaHechas = NULL; // puntero a nodo
 Nodo * tareasEnProceso = NULL; // puntero a nodo
+int indice = 0;
 
 // crear tarea
 Tarea *crearTarea(int id, int duracion, char *descripcion);
@@ -41,7 +42,7 @@ void mostrarLista(Nodo *lista);
 int longitudLista(Nodo *lista);
 
 // cargar lista
-void cargarLista(Nodo **lista);
+void cargarLista(Nodo **lista, int * indice);
 
 // consultar tarea realizada
 bool consultarTareaRealizada(Tarea *tarea);
@@ -185,11 +186,10 @@ void mostrarDatos(Nodo * lista){
     printf("\nCantidad de tareas: %d\nTiempo total para las tareas: %d\n", cantidadTareas, tiempoLista);
 }
 
-void cargarLista(Nodo **lista)
+void cargarLista(Nodo **lista, int * indice)
 {
     // int cantidadDeNodos;
     int respuesta;
-    int i = 0;
     int duracion;
     char *descripcion = (char *)malloc(100 * sizeof(char));
     // scanf("%d", &cantidadDeNodos);
@@ -200,7 +200,7 @@ void cargarLista(Nodo **lista)
 
     while (respuesta == 1)
     {
-        i++;
+        (*indice) = (*indice) + 1;
         printf("DESCRIPCION: ");
         gets(descripcion);
         do
@@ -210,19 +210,13 @@ void cargarLista(Nodo **lista)
             fflush(stdin);
         } while (duracion <= 10 || duracion >= 100);
 
-        Tarea *tarea = crearTarea(i, duracion, descripcion);
+        Tarea *tarea = crearTarea(*indice, duracion, descripcion);
         insertarNodo(lista, tarea);
         printf("\nIngresar nueva tarea? (1:si, 0:no): ");
         scanf("%d", &respuesta);
         fflush(stdin);
     }
 
-    // for (int i = 0; i < cantidadDeNodos; i++){
-    // printf("DESCRIPCION: ");
-    // gets(descripcion);
-    // Tarea * tarea = crearTarea(i+1, rand() % 99 + 1, descripcion);
-    // insertarNodo(lista, tarea);
-    // }
 }
 
 bool consultarTareaRealizada(Tarea *tarea)
@@ -388,7 +382,7 @@ void operacionMenuSegunOpcion(int opcion, Nodo **lista, Nodo **listaHechas)
     switch (opcion)
     {
     case 1:
-        cargarLista(lista);
+        cargarLista(lista, &indice);
         break;
     case 2:
         cargarTareasRealizadas(lista, listaHechas, longitudLista(*lista));
